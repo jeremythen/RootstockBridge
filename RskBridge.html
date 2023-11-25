@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/web3/1.9.0/web3.min.js' integrity='sha512-mUvdtCaVKd9dby/UnYGKMLkP3eT7EA6QNFN5iSEjvMf8TFPq2oZFIemWL46iypQcL8xYNdx7wQIA1oYnTXuYhg==' crossorigin='anonymous' referrerpolicy='no-referrer'></script>
+    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN' crossorigin='anonymous'>
+    <title>Rootstock Bridge</title>
+</head>
+
+<style>
+
+.bridge-button {
+    width: 450px;
+}
+
+#network-selection-container {
+    width: 550px;
+    margin: 8px;
+}
+
+</style>
+
+<body>
+
+    <h1 class='text-center'>Rootstock Bridge</h3>
+    <h5 class='text-center'>Simple html project to interact with the Rootstock (RSK) Blockchain Bridge</h2>
+    
+    <div id='network-selection-container'>
+
+        <p>
+            <select id='selectNetwork' class='form-select form-select-sm' aria-label=''>
+                <option selected value='testnet'>Testnet</option>
+                <option value='mainnet'>Mainet</option>
+            </select>
+        </p>
+
+        <p>
+            <b>Url:</b> <span id='url'></span>
+        </p>
+        <p>
+            <b>Bridge Address:</b> <span id='bridgeAddressElement'></span>
+        </p>
+
+    </div>
+
+    <div>
+        <button id='clearButton' type='button' class='btn btn-outline-warning m-2'>Clear</button>
+    </div>
+
+    <div id='container'>
+
+    </div>
+
+<script>
+
+const allowedMethods = [
+        'getBtcBlockchainBestChainHeight',
+        'getBtcBlockchainInitialBlockHeight',
+        'getBtcBlockchainBlockHashAtDepth',
+        'getBtcTxHashProcessedHeight',
+        'isBtcTxHashAlreadyProcessed',
+        'getFederationAddress',
+        'getFederationSize',
+        'getFederationThreshold',
+        'getFederatorPublicKey',
+        'getFederatorPublicKeyOfType',
+        'getFederationCreationTime',
+        'getFederationCreationBlockNumber',
+        'getRetiringFederationAddress',
+        'getRetiringFederationSize',
+        'getRetiringFederationThreshold',
+        'getRetiringFederatorPublicKey',
+        'getRetiringFederatorPublicKeyOfType',
+        'getRetiringFederationCreationTime',
+        'getRetiringFederationCreationBlockNumber',
+        'getPendingFederationHash',
+        'getPendingFederationSize',
+        'getPendingFederatorPublicKey',
+        'getPendingFederatorPublicKeyOfType',
+        'getFeePerKb',
+        'getMinimumLockTxValue',
+        'hasBtcBlockCoinbaseTransactionInformation',
+        'getActiveFederationCreationBlockHeight',
+        'getBtcBlockchainBestBlockHeader',
+        'getBtcBlockchainBlockHeaderByHash',
+        'getBtcBlockchainBlockHeaderByHeight',
+        'getBtcBlockchainParentBlockHeaderByHash',
+        'getEstimatedFeesForNextPegOutEvent',
+        'getNextPegoutCreationBlockNumber',
+        'getQueuedPegoutsCount',
+        'getActivePowpegRedeemScript',
+    ];
+
+    const bridgeAddress = '0x0000000000000000000000000000000001000006';
+    const testnetRskUrl = 'https://public-node.testnet.rsk.co/';
+    const mainnetRskUrl = 'https://public-node.rsk.co/';
+    let currentUrl = testnetRskUrl;
+    let bridge;
+    let web3 = new Web3(testnetRskUrl);
+    let bridgeAbi;
+    url.innerText = testnetRskUrl;
+    bridgeAddressElement.innerText = bridgeAddress;
+    window.web3 = web3;
+    window.bridge = bridge;
+
+    const selectNetworkElement = document.getElementById('selectNetwork');
+
+    const setupForSelectedNetwork = (networkUrl) => {
+        url.innerText = networkUrl;
+        currentUrl = networkUrl;
+        web3 = new Web3(networkUrl);
+        bridge = new web3.eth.Contract(bridgeAbi, bridgeAddress);
+        resetAllFields();
+        window.web3 = web3;
+        window.bridge = bridge;
+    };
+
+    selectNetworkElement.addEventListener('change', (event) => {
+        const network = event.target.value;
+        if(network === 'testnet') {
+            setupForSelectedNetwork(testnetRskUrl);
+        } else {
+            setupForSelectedNetwork(mainnetRskUrl);
+        }
+    });
+
+    const getBridgeAbi = async () => {
+        const url = 'https://raw.githubusercontent.com/rsksmart/precompiled-abis/master/abis/bridge.json';
+        const response = await fetch(url);
+        const bridgeAbi = await response.json();
+        return bridgeAbi;
+    };
+
+    const resetAllFields = () => {
+        const displayElements = document.getElementsByClassName('display');
+        for(let i = 0; i < displayElements.length; i++) {
+            displayElements[i].innerText = '';
+        }
+    };
+
+    const setupBridgeInteractionElements = (bridgeAbi) => {
+        const groups = bridgeAbi
+            .filter(element => {
+                return element.type === 'function' && allowedMethods.includes(element.name);
+            })
+            .sort((method1, method2) => {
+                return method1.inputs.length - method2.inputs.length;
+            })
+            .map(element => {
+
+                const button = document.createElement('button');
+                button.setAttribute('type', 'button');
+                button.setAttribute('class', 'btn btn-outline-primary mr-2 bridge-button');
+
+                button.textContent = element.name;
+                button.onclick = handleClick;
+
+                const group = document.createElement('div');
+
+                group.setAttribute('class', 'd-flex justify-content-start m-2')
+
+                group.appendChild(button);
+
+                for(let i = 0; i < element.inputs.length; i++) {
+                    const input = element.inputs[i];
+                    const inputText = document.createElement('input');
+                    inputText.setAttribute('type', 'text');
+                    inputText.setAttribute('class', 'form-control mx-2');
+                    inputText.setAttribute('placeholder', `${input.type} ${input.name}`);
+
+                    group.appendChild(inputText);
+                }
+
+                const display = document.createElement('span');
+                display.setAttribute('class', 'mx-2 display form-control');
+                display.setAttribute('disabled', 'true');
+                
+                group.appendChild(display);
+                return group;
+
+            });
+
+        const container = document.getElementById('container');
+
+        for(let i = 0; i < groups.length; i++) {
+            container.appendChild(groups[i]);
+        }
+    };
+
+    clearButton.addEventListener('click', () => {
+        resetAllFields();
+    });
+
+    const setup = async () => {
+        bridgeAbi = await getBridgeAbi();
+        bridge = new web3.eth.Contract(bridgeAbi, bridgeAddress);
+        setupBridgeInteractionElements(bridgeAbi);
+    };
+
+    setup().then(() => {
+        console.log('Loaded.');
+    })
+    .catch(err => {
+        console.log(err);
+    });
+
+async function handleClick() {
+    const button = event.target;
+    const children = [...button.parentNode.children];
+    const inputs = children.filter(element => element.nodeName === 'INPUT');
+    const args = inputs.map(input => input.value);
+    const functionName = button.innerText;
+    const result = await bridge.methods[functionName](...args).call();
+    const displaySpan = children[children.length - 1];
+    displaySpan.innerText = result;
+}
+
+</script>
+
+</body>
+</html>

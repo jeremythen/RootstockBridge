@@ -97,12 +97,10 @@ const allowedMethods = [
     const mainnetRskUrl = 'https://public-node.rsk.co/';
     let currentUrl = testnetRskUrl;
     let bridge;
-    let web3 = new Web3(testnetRskUrl);
+    let web3;
     let bridgeAbi;
     url.innerText = testnetRskUrl;
     bridgeAddressElement.innerText = bridgeAddress;
-    window.web3 = web3;
-    window.bridge = bridge;
 
     const selectNetworkElement = document.getElementById('selectNetwork');
 
@@ -194,8 +192,11 @@ const allowedMethods = [
 
     const setup = async () => {
         bridgeAbi = await getBridgeAbi();
+        web3 = new Web3(testnetRskUrl);
         bridge = new web3.eth.Contract(bridgeAbi, bridgeAddress);
         setupBridgeInteractionElements(bridgeAbi);
+        window.web3 = web3;
+        window.bridge = bridge;
     };
 
     setup().then(() => {
@@ -205,16 +206,16 @@ const allowedMethods = [
         console.log(err);
     });
 
-async function handleClick() {
-    const button = event.target;
-    const children = [...button.parentNode.children];
-    const inputs = children.filter(element => element.nodeName === 'INPUT');
-    const args = inputs.map(input => input.value);
-    const functionName = button.innerText;
-    const result = await bridge.methods[functionName](...args).call();
-    const displaySpan = children[children.length - 1];
-    displaySpan.innerText = result;
-}
+    async function handleClick() {
+        const button = event.target;
+        const children = [...button.parentNode.children];
+        const inputs = children.filter(element => element.nodeName === 'INPUT');
+        const args = inputs.map(input => input.value);
+        const functionName = button.innerText;
+        const result = await bridge.methods[functionName](...args).call();
+        const displaySpan = children[children.length - 1];
+        displaySpan.innerText = result;
+    }
 
 </script>
 

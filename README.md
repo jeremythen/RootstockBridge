@@ -6,6 +6,6 @@ You can clone this project and open the `RootstockBridge.html` file or simply do
 
 It has a `Web3` dependency downloaded from https://cdnjs.com/libraries/web3
 
-If you want to visualize that html file from github, you can visit this link: https://raw.githack.com/jeremythen/RoostockBridge/main/RootstockBridge.html
+If you want to visualize that html file from github, you can visit this link: https://raw.githack.com/jeremythen/RootstockBridge/main/RootstockBridge.html
 
 You can select the networks `Testnet` or `Mainnet`.

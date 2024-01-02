@@ -27,31 +27,49 @@
     <h1 class='text-center'>Rootstock Bridge</h3>
     <h5 class='text-center'>Simple html project to interact with the Rootstock (RSK) Blockchain Bridge</h2>
     
-    <div id='network-selection-container'>
+        <ul class="nav nav-tabs" id="tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button onclick="openTab(event)" class="nav-link active" id="bridgeMethodsTab" data-bs-toggle="tab" data-bs-target="bridgeMethods" type="button" role="tab" aria-controls="bridgeMethodsTab" aria-selected="true">Bridge Methods</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button onclick="openTab(event)" class="nav-link disabled" id="utilitiesTab" data-bs-toggle="tab" data-bs-target="utilities" type="button" role="tab" aria-controls="profile" aria-selected="false">Utilities</button>
+            </li>
+        </ul>
+          
+        <div class="tab-content" id="tabContent">
+            <div class="tab-pane fade show active" id="bridgeMethods" role="tabpanel" aria-labelledby="bridgeMethodsTab">
+                <div id='network-selection-container'>
+                    <p>
+                        <select id='selectNetwork' class='form-select form-select-sm' aria-label=''>
+                            <option selected value='testnet'>Testnet</option>
+                            <option value='mainnet'>Mainet</option>
+                        </select>
+                    </p>
+        
+                    <p>
+                        <b>Url:</b> <span id='url'></span>
+                    </p>
+                    <p>
+                        <b>Bridge Address:</b> <span id='bridgeAddressElement'></span>
+                    </p>
+        
+                </div>
+        
+                <div>
+                    <button id='clearButton' type='button' class='btn btn-outline-warning m-2'>Clear</button>
+                </div>
+        
+                <div id='container'>
+        
+                </div>
+            </div>
 
-        <p>
-            <select id='selectNetwork' class='form-select form-select-sm' aria-label=''>
-                <option selected value='testnet'>Testnet</option>
-                <option value='mainnet'>Mainet</option>
-            </select>
-        </p>
-
-        <p>
-            <b>Url:</b> <span id='url'></span>
-        </p>
-        <p>
-            <b>Bridge Address:</b> <span id='bridgeAddressElement'></span>
-        </p>
-
-    </div>
-
-    <div>
-        <button id='clearButton' type='button' class='btn btn-outline-warning m-2'>Clear</button>
-    </div>
-
-    <div id='container'>
-
-    </div>
+            <div class="tab-pane fade" id="utilities" role="tabpanel" aria-labelledby="utilitiesTab">
+                <div id="Utilities" class="tabcontent">
+                    utilities
+                </div>
+            </div>
+        </div>
 
 <script>
 
@@ -244,6 +262,53 @@
     .catch(err => {
         console.log(err);
     });
+
+    function closeTabs() {
+        const tabs = document.getElementById('tabs');
+        const tabContent = document.getElementById('tabContent');
+
+        tabs.querySelectorAll('button').forEach(tabButton => {
+            tabButton.classList.remove('active');
+        });
+
+        tabContent.querySelectorAll('div').forEach(tabContent => {
+            tabContent.classList.remove('active');
+            tabContent.classList.remove('show');
+        });
+    }
+
+    function openTabById(tabId) {
+        const tabToShow = document.getElementById(tabId);
+        tabToShow.classList.add('active');
+        tabToShow.classList.add('show');
+    }
+
+    function openTab(event) {
+        closeTabs();
+        event.target.classList.add('active');
+        const tabId = event.target.getAttribute('data-bs-target');
+        openTabById(tabId);
+    }
+
+    function openUtilitiesTab() {
+        closeTabs();
+        const utilitiesTab = document.getElementById('utilitiesTab');
+        utilitiesTab.classList.add('active');
+        const utilities = document.getElementById('utilities');
+        utilities.classList.add('active');
+        utilities.classList.add('show');
+    }
+
+    function openTabFromLocationHash () {
+        const hash = window.location.hash;
+        if(hash === '#utilitiesTab') {
+            openUtilitiesTab();
+        }
+    }
+
+    (function () {
+        openTabFromLocationHash();
+    })();
 
 </script>
 
